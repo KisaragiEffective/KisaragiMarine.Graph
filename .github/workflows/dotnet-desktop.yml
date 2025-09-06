@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build (type-check)
+        run: dotnet build --configuration ${{ matrix.configuration }} --no-restore --warnaserror
+
+      - name: Test
+        run: dotnet test --configuration ${{ matrix.configuration }} --no-build --verbosity normal
